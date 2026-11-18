@@ -16,6 +16,8 @@ Drag-and-drop College Football Playoff Top 25 with a live 12-team bracket, plus 
 5. **Project settings → Your apps → Web (`</>`)**, register an app, and copy the `firebaseConfig` object into `firebase-config.js`.
 6. Commit and push. GitHub Pages serves the site from the `main` branch root.
 
-Remove a submission from the Firebase console (Firestore → `submissions`).
+## Admin (clear picks)
+
+Tap **Admin sign-in** at the bottom of the page and sign in with an admin Google account (listed in `firebase-config.js` and `firestore.rules`). Admins get a ✕ on each submission and a **Clear all picks** button. One-time setup: enable the **Google** sign-in provider and add `chanathan03.github.io` under Authentication → Settings → Authorized domains.
 
 `vendor/firebase.js` is the Firebase JS SDK 13.4.0 bundled into one file.

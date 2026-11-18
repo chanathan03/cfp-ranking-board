@@ -8,3 +8,6 @@ export const firebaseConfig = {
   appId: "1:125373323063:web:29867f20907ca2fc85acb2",
   measurementId: "G-9ZTJ7H8XS6"
 };
+
+// Google accounts allowed to delete submissions (must also be listed in firestore.rules).
+export const adminEmails = ["jkchan3@gmail.com"];

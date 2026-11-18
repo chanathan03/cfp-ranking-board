@@ -12,7 +12,9 @@ service cloud.firestore {
         && request.resource.data.name.size() <= 40
         && request.resource.data.order is list
         && request.resource.data.order.size() == 25;
-      allow delete: if request.auth != null && request.auth.uid == uid;
+      allow delete: if request.auth != null
+        && (request.auth.uid == uid
+            || (request.auth.token.email == 'jkchan3@gmail.com' && request.auth.token.email_verified == true));
     }
     match /{document=**} {
       allow read, write: if false;

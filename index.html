@@ -143,6 +143,13 @@ select{font:inherit; font-size:15px; background:var(--turf2); color:var(--chalk)
 .cons .ulist{columns:3}
 footer{max-width:1280px; margin:0 auto; padding:0 16px 30px; color:var(--dim); font-size:14px}
 footer a{color:var(--dim)}
+.admin{margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+.linkbtn{background:none; border:0; color:var(--dim); text-decoration:underline; padding:0; font-size:14px}
+.adminbar{display:none; gap:8px; align-items:center; flex-wrap:wrap; margin:0 0 12px; padding:8px 12px; border:1px dashed var(--red); border-radius:10px}
+.adminbar.on{display:flex}
+.adminbar span{color:var(--red); font-weight:700; letter-spacing:.5px; font-size:14px; text-transform:uppercase}
+.btn.danger{border-color:var(--red); color:var(--red)}
+.btn.danger.arm{background:var(--red); color:#fff}
 
 @media (max-width:900px){
   .m-only{display:inline} .d-only{display:none}
@@ -193,12 +200,14 @@ footer a{color:var(--dim)}
   <section id="usersSec">
     <h2>Cluck and Huddle Picks</h2>
     <p class="hint" id="usersNote">Loading submissions…</p>
+    <div class="adminbar" id="adminbar"><span>Admin</span><button class="btn danger" id="clearAll">Clear all picks</button><span id="adminMsg" style="text-transform:none;font-weight:500;color:var(--dim)"></span></div>
     <div class="cons" id="cons"></div>
     <div class="users" id="users"></div>
   </section>
 </main>
 <footer>
   Rankings: <a href="https://www.ncaa.com/news/football/article/2026-11-10/georgia-utah-lead-second-college-football-playoff-rankings-2026">NCAA.com, CFP rankings Nov 10, 2026</a> · Format: <a href="https://collegefootballplayoff.com/sports/2024/5/29/12-team-format">collegefootballplayoff.com</a>. Team badges are simple color/initial marks, not official logos. Your working board is saved in this browser; submitted rankings are shared with everyone who opens this page.
+  <div class="admin"><button class="linkbtn" id="adminBtn">Admin sign-in</button><span id="adminStatus"></span></div>
 </footer>
 
 <script>
@@ -459,7 +468,7 @@ $('#users').addEventListener('click',async e=>{
     state={order:[...u.order],champs:{...u.champs},picks:{...u.picks}}; save(); renderAll();
     const b=document.querySelector('.tabs button[data-t=board]'); b.click();
     msg(`Loaded ${u.name}'s ranking into your board.`,'ok'); }
-  if(t.dataset.del && isOwner){ try{ await db.remove(t.dataset.del); }catch(err){ $('#usersNote').textContent='Couldn’t remove that submission. Try again.'; } }
+  if(t.dataset.del && isOwner){ try{ await window.adminApi.remove(t.dataset.del); }catch(err){ $('#usersNote').textContent='Couldn’t remove that submission. Try again.'; } }
 });
 $('#subForm').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -493,6 +502,34 @@ window.initShared=backend=>{
   },()=>{ clearTimeout(timer); $('#usersNote').textContent='Shared rankings stopped loading. Reload the page to try again.'; });
 };
 
+/* ---------- Admin ---------- */
+window.setAdmin=(on,email)=>{
+  isOwner=!!on;
+  $('#adminbar').classList.toggle('on',isOwner);
+  $('#adminBtn').textContent=email?'Sign out':'Admin sign-in';
+  $('#adminStatus').textContent=email?(on?`Admin: ${email}`:`${email} isn't an admin`):'';
+  renderUsers();
+};
+$('#adminBtn').addEventListener('click',async()=>{
+  if(!window.adminApi){ $('#adminStatus').textContent='Admin sign-in isn’t available right now.'; return; }
+  try{ await window.adminApi.toggle(); }catch(e){ $('#adminStatus').textContent=e?.code==='auth/unauthorized-domain'?'This site isn’t on Firebase’s authorized domains yet.':(e?.code==='auth/popup-closed-by-user'?'':'Sign-in didn’t complete. Try again.'); }
+});
+let armTimer=null;
+$('#clearAll').addEventListener('click',async()=>{
+  const b=$('#clearAll'), m=$('#adminMsg');
+  if(!isOwner) return;
+  if(!subs.length){ m.textContent='There are no picks to clear.'; return; }
+  if(!b.classList.contains('arm')){
+    b.classList.add('arm'); b.textContent=`Tap again to delete all ${subs.length}`;
+    clearTimeout(armTimer); armTimer=setTimeout(()=>{ b.classList.remove('arm'); b.textContent='Clear all picks'; },4000);
+    return;
+  }
+  clearTimeout(armTimer); b.classList.remove('arm'); b.disabled=true; b.textContent='Clearing…';
+  let fail=0; for(const u of [...subs]){ try{ await window.adminApi.remove(u.id); }catch(_){ fail++; } }
+  b.disabled=false; b.textContent='Clear all picks';
+  m.textContent=fail?`Couldn’t delete ${fail}. Check the database rules.`:'All picks cleared.';
+});
+
 /* ---------- Misc ---------- */
 function renderAll(flashId){ renderBoard(flashId); renderChamps(); renderBracket(); }
 $('#reset').onclick=()=>{ state={order:[...DEFAULT],champs:{},picks:{}}; save(); renderAll(); };
@@ -504,12 +541,24 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
 renderAll();
 </script>
 <script type="module">
-import { firebaseConfig } from './firebase-config.js';
-import { initializeApp, getAuth, signInAnonymously, getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from './vendor/firebase.js';
+import { firebaseConfig, adminEmails } from './firebase-config.js';
+import { initializeApp, getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from './vendor/firebase.js';
+function setupAdmin(){
+  // separate Firebase app instance so Google sign-in doesn't replace the visitor's anonymous identity
+  const app=initializeApp(firebaseConfig,'admin'), auth=getAuth(app), fs=getFirestore(app);
+  const admins=(adminEmails||[]).map(e=>e.toLowerCase());
+  const isAdmin=u=>!!u && u.emailVerified && admins.includes((u.email||'').toLowerCase());
+  window.adminApi={
+    toggle: async()=>{ if(auth.currentUser) await signOut(auth); else await signInWithPopup(auth,new GoogleAuthProvider()); },
+    remove: id=>{ if(!isAdmin(auth.currentUser)) return Promise.reject(new Error('not admin')); return deleteDoc(doc(fs,'submissions',id)); },
+  };
+  onAuthStateChanged(auth,u=>window.setAdmin(isAdmin(u),u?.email||''));
+}
 async function connect(){
   if(!firebaseConfig || !firebaseConfig.apiKey){ window.initShared(null); return; }
   try{
     const app=initializeApp(firebaseConfig);
+    try{ setupAdmin(); }catch(e){ console.error(e); }
     const cred=await signInAnonymously(getAuth(app));
     const fs=getFirestore(app), uid=cred.user.uid;
     window.initShared({
