@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CFP Ranking Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Graduate&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --turf:#0f3d24; --turf2:#0b301c; --chalk:#f4f1e8; --dim:#a9bfae; --line:rgba(244,241,232,.14);
+  --gold:#e8b931; --red:#e0533d; --card:#123f27; --card2:#16492e;
+  --row-h:58px; --gap:6px;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:'Barlow Condensed',system-ui,sans-serif; color:var(--chalk);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(10% - 1px), rgba(255,255,255,.035) calc(10% - 1px) 10%),
+    repeating-linear-gradient(90deg, var(--turf) 0 5%, var(--turf2) 5% 10%);
+  min-height:100vh; -webkit-tap-highlight-color:transparent;
+}
+header{padding:18px 16px 8px; max-width:1280px; margin:0 auto}
+h1{font-family:'Graduate',serif; font-weight:400; font-size:clamp(26px,5vw,40px); margin:0; letter-spacing:.5px; line-height:1}
+h1 span{color:var(--gold)}
+.sub{color:var(--dim); font-size:16px; margin-top:6px}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+button{font:inherit; cursor:pointer}
+.btn{background:transparent; color:var(--chalk); border:1.5px solid var(--line); border-radius:8px; padding:6px 12px; font-size:15px; font-weight:600; letter-spacing:.3px}
+.btn:hover{border-color:var(--chalk)}
+.btn.gold{border-color:var(--gold); color:var(--gold)}
+.tabs{display:none; position:sticky; top:0; z-index:20; background:var(--turf2); border-bottom:1px solid var(--line)}
+.tabs button{flex:1; background:none; border:0; color:var(--dim); padding:12px; font-size:17px; font-weight:700; letter-spacing:1px; text-transform:uppercase; border-bottom:3px solid transparent}
+.tabs button.on{color:var(--chalk); border-color:var(--gold)}
+main{max-width:1280px; margin:0 auto; padding:8px 16px 40px; display:grid; grid-template-columns:minmax(360px,460px) 1fr; gap:24px; align-items:start}
+section h2{font-family:'Graduate',serif; font-weight:400; font-size:20px; margin:8px 0 10px; letter-spacing:.5px}
+.hint{color:var(--dim); font-size:15px; margin:-4px 0 10px}
+
+/* Board */
+#board{position:relative; display:flex; flex-direction:column; gap:var(--gap); user-select:none; -webkit-user-select:none}
+.row{
+  height:var(--row-h); display:flex; align-items:center; gap:10px; padding:0 8px 0 4px;
+  background:var(--card); border:1px solid var(--line); border-radius:10px; position:relative;
+  transition:transform .18s ease, background .2s; cursor:grab; -webkit-touch-callout:none;
+}
+.row.pending{background:#1a5234}
+.row.in{background:var(--card2)}
+.row.bye{box-shadow:inset 4px 0 0 var(--gold)}
+.row.in:not(.bye){box-shadow:inset 4px 0 0 var(--chalk)}
+.row.dragging{transition:none; z-index:10; background:#1d5a39; box-shadow:0 12px 28px rgba(0,0,0,.45), inset 4px 0 0 var(--gold); border-color:var(--gold)}
+.row.flash{animation:flash .9s ease}
+@keyframes flash{0%{background:#2c7a4f}100%{}}
+.rk{width:34px; text-align:center; font-family:'Graduate',serif; font-size:20px}
+.badge{
+  width:44px; height:44px; flex:none; border-radius:50%; display:grid; place-items:center;
+  font-weight:700; font-size:14px; letter-spacing:.3px; border:3px solid; cursor:grab; touch-action:none;
+  box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.badge.sm.l4{font-size:7px}
+.row.dragging{cursor:grabbing}
+.dragging .badge{cursor:grabbing; transform:scale(1.08)}
+.badge.l4{font-size:11.5px; letter-spacing:0}
+.badge.sm{width:26px; height:26px; font-size:9px; border-width:2px; cursor:default; box-shadow:none}
+.tm{flex:1; min-width:0; line-height:1.05}
+.tm b{font-size:19px; font-weight:700; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tm small{color:var(--dim); font-size:14px}
+.pill{font-size:12px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; padding:3px 7px; border-radius:5px; white-space:nowrap}
+.pill.bye{background:var(--gold); color:#1b1b1b}
+.pill.seed{background:var(--chalk); color:#1b1b1b}
+.pill.out{border:1px solid var(--red); color:var(--red)}
+.pill.auto{border:1px solid var(--gold); color:var(--gold); margin-left:4px}
+.pills{display:flex; flex-direction:column; align-items:flex-end; gap:3px}
+.arrows{display:flex; flex-direction:column; gap:2px}
+.arrows button{cursor:pointer; background:none; border:0; color:var(--dim); font-size:13px; padding:2px 6px; line-height:1}
+.arrows button:hover{color:var(--chalk)}
+.arrows button:disabled{opacity:.2}
+
+/* Rules */
+details.rules{background:rgba(0,0,0,.18); border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin-bottom:12px}
+details.rules summary{cursor:pointer; font-weight:700; font-size:16px; letter-spacing:.4px}
+.rules p{color:var(--dim); font-size:15px; margin:8px 0}
+.champs{display:grid; grid-template-columns:auto 1fr; gap:6px 10px; align-items:center; margin:8px 0 4px; font-size:16px}
+select{font:inherit; font-size:15px; background:var(--turf2); color:var(--chalk); border:1px solid var(--line); border-radius:6px; padding:4px 6px}
+
+/* Bracket */
+.bracket{display:grid; grid-template-columns:repeat(4,minmax(150px,1fr)); gap:14px}
+.round{display:flex; flex-direction:column}
+.round h3{font-size:14px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin:0 0 8px; font-weight:700}
+.games{display:flex; flex-direction:column; justify-content:space-around; flex:1; gap:12px}
+.game{background:rgba(0,0,0,.25); border:1px solid var(--line); border-radius:9px; overflow:hidden}
+.game .lbl{font-size:12px; color:var(--dim); padding:4px 8px 0; letter-spacing:.5px}
+.slot{display:flex; align-items:center; gap:7px; padding:6px 8px; width:100%; background:none; border:0; color:var(--chalk); text-align:left; font-size:16px; font-weight:600; min-height:38px}
+.slot+.slot{border-top:1px solid var(--line)}
+.slot .sd{width:18px; color:var(--dim); font-size:14px; text-align:right}
+.slot .nm{flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.slot.tbd{color:var(--dim); font-weight:400; font-style:italic}
+.slot.pickable:hover{background:rgba(255,255,255,.06)}
+.slot.win{background:rgba(232,185,49,.16)}
+.slot.win .nm::after{content:" ✓"; color:var(--gold)}
+.slot.lose{opacity:.45}
+.champ{margin-top:14px; text-align:center; border:2px solid var(--gold); border-radius:12px; padding:12px; background:rgba(232,185,49,.08)}
+.champ .t{font-family:'Graduate',serif; font-size:13px; color:var(--gold); letter-spacing:1px}
+.champ .n{font-size:24px; font-weight:700; margin-top:4px; display:flex; gap:8px; justify-content:center; align-items:center}
+.field{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 14px}
+.field span{font-size:14px; padding:3px 8px; border-radius:6px; background:rgba(0,0,0,.22); border:1px solid var(--line)}
+.field span.a{border-color:var(--gold)}
+
+/* Submit + Everyone */
+.submit{display:flex; gap:8px; margin:0 0 6px}
+.submit input{flex:1; min-width:0; font:inherit; font-size:17px; background:var(--turf2); color:var(--chalk); border:1.5px solid var(--line); border-radius:8px; padding:7px 10px}
+.submit input:focus{outline:none; border-color:var(--gold)}
+.msg{font-size:15px; color:var(--dim); min-height:20px; margin:0 0 10px}
+.msg.ok{color:var(--gold)} .msg.err{color:var(--red)}
+#usersSec{grid-column:1/-1}
+.users{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:12px}
+.ucard{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px}
+.ucard.me{border-color:var(--gold)}
+.uhead{display:flex; align-items:center; gap:8px}
+.uhead h4{margin:0; font-size:21px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.uhead small{color:var(--dim); font-size:13px; white-space:nowrap}
+.umeta{color:var(--dim); font-size:14px; margin:4px 0 8px; display:flex; align-items:center; gap:6px}
+.mini{display:flex; gap:4px; flex-wrap:wrap}
+.ulist{list-style:none; margin:8px 0 0; padding:0; columns:2; column-gap:12px; font-size:15px}
+.ulist li{display:flex; gap:6px; align-items:center; padding:2px 0; break-inside:avoid}
+.ulist .n{width:18px; text-align:right; color:var(--dim)}
+.ulist .d{margin-left:auto; font-size:12px}
+.up{color:#7fd38f} .dn{color:var(--red)}
+.uact{display:flex; gap:6px; margin-top:10px; flex-wrap:wrap}
+.uact .btn{font-size:14px; padding:4px 10px}
+.x{background:none; border:0; color:var(--dim); font-size:16px; padding:2px 4px}
+.x:hover{color:var(--red)}
+.cons{margin-bottom:16px}
+.cons .ulist{columns:3}
+footer{max-width:1280px; margin:0 auto; padding:0 16px 30px; color:var(--dim); font-size:14px}
+footer a{color:var(--dim)}
+
+@media (max-width:900px){
+  .tabs{display:flex}
+  main{grid-template-columns:1fr; padding-top:12px}
+  main[data-tab="board"] #bracketSec, main[data-tab="board"] #usersSec,
+  main[data-tab="bracket"] #boardSec, main[data-tab="bracket"] #usersSec,
+  main[data-tab="users"] #boardSec, main[data-tab="users"] #bracketSec{display:none}
+  .cons .ulist{columns:2}
+  .bracket{grid-template-columns:1fr}
+  .games{gap:10px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>CFP <span>Ranking Board</span></h1>
+  <div class="sub" id="asof">Committee Top 25 · Nov 10, 2026 release · drag a logo to re-rank and the 12-team bracket rebuilds live</div>
+  <div class="toolbar">
+    <button class="btn gold" id="reset">↺ Reset to committee</button>
+    <button class="btn" id="clearPicks">Clear bracket picks</button>
+  </div>
+</header>
+<nav class="tabs"><button data-t="board" class="on">Top 25</button><button data-t="bracket">Bracket</button><button data-t="users">Everyone</button></nav>
+<main data-tab="board">
+  <section id="boardSec">
+    <h2>Top 25</h2>
+    <form class="submit" id="subForm"><input id="uname" maxlength="40" placeholder="Your name" autocomplete="nickname"><button class="btn gold" id="subBtn" type="submit">Submit my ranking</button></form>
+    <p class="msg" id="subMsg"></p>
+    <p class="hint">Drag any team up or down (on a phone, press and hold a row first). Arrows nudge one spot.</p>
+    <div id="board"></div>
+  </section>
+  <section id="bracketSec">
+    <h2>Playoff Bracket</h2>
+    <details class="rules">
+      <summary>Selection rules &amp; conference champions</summary>
+      <p>2026–27 format: champions of the SEC, Big Ten, Big 12 and ACC get auto bids, plus the highest-ranked Group of 6 team, plus Notre Dame if it's in the top 12. The rest of the 12 spots go to the next-highest-ranked teams. Teams are seeded by ranking, except the top Group of 6 team, which always gets the 12 seed. Seeds 1–4 get byes. No reseeding.</p>
+      <p>Until title games are played, each champion defaults to the conference's highest-ranked team. Override below:</p>
+      <div class="champs" id="champs"></div>
+    </details>
+    <div class="field" id="field"></div>
+    <div class="bracket" id="bracket"></div>
+    <div class="champ" id="champ"></div>
+  </section>
+  <section id="usersSec">
+    <h2>Rankings by user</h2>
+    <p class="hint" id="usersNote">Loading submissions…</p>
+    <div class="cons" id="cons"></div>
+    <div class="users" id="users"></div>
+  </section>
+</main>
+<footer>
+  Rankings: <a href="https://www.ncaa.com/news/football/article/2026-11-10/georgia-utah-lead-second-college-football-playoff-rankings-2026">NCAA.com, CFP rankings Nov 10, 2026</a> · Format: <a href="https://collegefootballplayoff.com/sports/2024/5/29/12-team-format">collegefootballplayoff.com</a>. Team badges are simple color/initial marks, not official logos. Your working board is saved in this browser; submitted rankings are shared with everyone who opens this page.
+</footer>
+
+<script>
+const TEAMS = [
+  ['uga','Georgia','8-1','SEC','UGA','#BA0C2F','#FFFFFF'],
+  ['utah','Utah','9-0','Big 12','UTAH','#CC0000','#FFFFFF'],
+  ['bama','Alabama','7-2','SEC','BAMA','#9E1B32','#FFFFFF'],
+  ['ucla','UCLA','9-0','Big Ten','UCLA','#2D68C4','#F2A900'],
+  ['nd','Notre Dame','8-1','Independent','ND','#0C2340','#C99700'],
+  ['tex','Texas','7-2','SEC','TEX','#BF5700','#FFFFFF'],
+  ['mia','Miami (FL)','8-1','ACC','MIA','#005030','#F47321'],
+  ['tenn','Tennessee','7-2','SEC','TENN','#FF8200','#FFFFFF'],
+  ['iu','Indiana','8-1','Big Ten','IU','#990000','#FFFFFF'],
+  ['byu','BYU','7-2','Big 12','BYU','#002E5D','#FFFFFF'],
+  ['uk','Kentucky','7-2','SEC','UK','#0033A0','#FFFFFF'],
+  ['ttu','Texas Tech','8-1','Big 12','TTU','#CC0000','#111111'],
+  ['wake','Wake Forest','8-1','ACC','WAKE','#111111','#9E7E38'],
+  ['uh','Houston','7-2','Big 12','UH','#C8102E','#FFFFFF'],
+  ['iowa','Iowa','7-2','Big Ten','IOWA','#FFCD00','#111111'],
+  ['ore','Oregon','6-3','Big Ten','ORE','#154733','#FEE123'],
+  ['sc','South Carolina','6-3','SEC','SC','#73000A','#FFFFFF'],
+  ['usc','USC','7-2','Big Ten','USC','#990000','#FFC72C'],
+  ['miss','Ole Miss','6-3','SEC','MISS','#14213D','#CE1126'],
+  ['osu','Ohio State','6-3','Big Ten','OSU','#BB0000','#C9CED1'],
+  ['lsu','LSU','6-3','SEC','LSU','#461D7C','#FDD023'],
+  ['miz','Missouri','6-3','SEC','MIZ','#F1B82D','#111111'],
+  ['ariz','Arizona','7-2','Big 12','ARIZ','#003366','#CC0033'],
+  ['bsu','Boise State','8-1','Pac-12','BSU','#0033A0','#D64309'],
+  ['okst','Oklahoma State','6-3','Big 12','OKST','#FF7300','#111111'],
+].map(([id,name,rec,conf,ab,c1,c2])=>({id,name,rec,conf,ab,c1,c2}));
+const T = Object.fromEntries(TEAMS.map(t=>[t.id,t]));
+const DEFAULT = TEAMS.map(t=>t.id);
+const P4 = ['SEC','Big Ten','Big 12','ACC'];
+const G6 = ['Pac-12','Mountain West','American','Sun Belt','MAC','C-USA'];
+const KEY = 'cfp-board-2026-v1';
+
+let state = {order:[...DEFAULT], champs:{}, picks:{}};
+try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && Array.isArray(s.order) && s.order.length===25 && s.order.every(id=>T[id])) state = Object.assign(state,s); }catch(e){}
+const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} };
+
+const $ = s=>document.querySelector(s);
+const badge = (t,sm)=>`<div class="badge${sm?' sm':''}${t.ab.length>3?' l4':''}" style="background:${t.c1};color:${t.c2};border-color:${t.c2}">${t.ab}</div>`;
+
+/* ---------- Selection ---------- */
+function compute(){
+  const order = state.order, rank = id=>order.indexOf(id)+1;
+  const auto = {};
+  P4.forEach(c=>{
+    let id = state.champs[c];
+    if(!id || T[id]?.conf!==c) id = order.find(x=>T[x].conf===c);
+    if(id) auto[id] = c+' champ';
+  });
+  const g6 = order.find(x=>G6.includes(T[x].conf));
+  if(g6 && !auto[g6]) auto[g6] = 'Top G6';
+  if(rank('nd')<=12 && !auto.nd) auto.nd = 'ND rule';
+  const field = new Set(Object.keys(auto));
+  for(const id of order){ if(field.size>=12) break; field.add(id); }
+  // straight seeding by rank, except the top Group of 6 team is always the 12 seed
+  const seeds = order.filter(id=>field.has(id) && id!==g6);
+  if(g6) seeds.push(g6);
+  const out = order.filter(id=>!field.has(id)).slice(0,2);
+  return {auto, seeds, out, seedOf:id=>seeds.indexOf(id)+1};
+}
+
+/* ---------- Board ---------- */
+const board = $('#board');
+function renderBoard(flashId){
+  const sel = compute();
+  board.innerHTML = state.order.map((id,i)=>{
+    const t=T[id], sd=sel.seedOf(id), inF=sd>0;
+    let pills='';
+    if(inF) pills += `<span class="pill ${sd<=4?'bye':'seed'}">${sd<=4?'Bye · ':''}Seed ${sd}</span>`;
+    else if(sel.out.includes(id)) pills += `<span class="pill out">${sel.out[0]===id?'First out':'Next out'}</span>`;
+    if(sel.auto[id]) pills += `<span class="pill auto">${sel.auto[id]}</span>`;
+    return `<div class="row${inF?' in':''}${inF&&sd<=4?' bye':''}${id===flashId?' flash':''}" data-id="${id}">
+      <div class="rk">${i+1}</div>${badge(t)}
+      <div class="tm"><b>${t.name}</b><small>${t.rec} · ${t.conf}</small></div>
+      <div class="pills">${pills}</div>
+      <div class="arrows"><button data-mv="-1" ${i===0?'disabled':''} aria-label="Move up">▲</button><button data-mv="1" ${i===24?'disabled':''} aria-label="Move down">▼</button></div>
+    </div>`;
+  }).join('');
+}
+function move(id,to){
+  const o=state.order, from=o.indexOf(id);
+  to=Math.max(0,Math.min(24,to)); if(from===to) return;
+  o.splice(from,1); o.splice(to,0,id); save(); renderAll(id);
+}
+board.addEventListener('click',e=>{
+  const b=e.target.closest('[data-mv]'); if(!b) return;
+  const id=b.closest('.row').dataset.id; move(id, state.order.indexOf(id)+(+b.dataset.mv));
+});
+
+/* drag with pointer events (mouse + touch) */
+let drag=null, pend=null;
+function startDrag(el,clientY,pointerId,capEl){
+  const rows=[...board.children], idx=rows.indexOf(el);
+  const step=el.offsetHeight+parseFloat(getComputedStyle(board).rowGap||6);
+  drag={el,rows,idx,step,target:idx,startY:clientY+scrollY,y:clientY,id:el.dataset.id,touch:pointerId==null};
+  el.classList.remove('pending'); el.classList.add('dragging');
+  if(capEl && pointerId!=null){ try{capEl.setPointerCapture(pointerId);}catch(_){} }
+  try{ navigator.vibrate && navigator.vibrate(12); }catch(_){}
+  requestAnimationFrame(autoScroll);
+}
+function cancelPend(){ if(pend){ clearTimeout(pend.timer); pend.el.classList.remove('pending'); pend=null; } }
+board.addEventListener('pointerdown',e=>{
+  const el=e.target.closest('.row');
+  if(!el || e.button>0 || e.target.closest('.arrows')) return;
+  const onBadge=!!e.target.closest('.badge');
+  if(e.pointerType==='mouse' || onBadge){ e.preventDefault(); startDrag(el,e.clientY,e.pointerId,e.target); return; }
+  // touch/pen on the row body: long-press to pick up so normal swipes still scroll
+  cancelPend();
+  el.classList.add('pending');
+  pend={el,x:e.clientX,y:e.clientY,timer:setTimeout(()=>{ const p=pend; pend=null; if(p) startDrag(p.el,p.y,null,null); },230)};
+});
+board.addEventListener('contextmenu',e=>{ if(e.target.closest('.row')) e.preventDefault(); });
+// block page scroll while a row is being dragged by touch
+addEventListener('touchmove',e=>{
+  if(drag){ e.preventDefault(); drag.y=e.touches[0].clientY; update(); }
+},{passive:false});
+function update(){
+  const d=drag, dy=d.y+scrollY-d.startY;
+  d.el.style.transform=`translateY(${dy}px)`;
+  d.target=Math.max(0,Math.min(d.rows.length-1,d.idx+Math.round(dy/d.step)));
+  d.rows.forEach((r,i)=>{
+    if(i===d.idx) return;
+    let s=0;
+    if(d.idx<d.target && i>d.idx && i<=d.target) s=-d.step;
+    if(d.target<d.idx && i>=d.target && i<d.idx) s=d.step;
+    r.style.transform=s?`translateY(${s}px)`:'';
+  });
+  d.el.querySelector('.rk').textContent=d.target+1;
+}
+addEventListener('pointermove',e=>{
+  if(pend){ if(Math.hypot(e.clientX-pend.x,e.clientY-pend.y)>8) cancelPend(); else pend.y=e.clientY; }
+  if(!drag) return; drag.y=e.clientY; update();
+},{passive:true});
+function autoScroll(){
+  if(!drag) return;
+  const m=70, y=drag.y; let v=0;
+  if(y<m) v=-Math.ceil((m-y)/6); else if(y>innerHeight-m) v=Math.ceil((y-(innerHeight-m))/6);
+  if(v){ scrollBy(0,v); update(); }
+  requestAnimationFrame(autoScroll);
+}
+function endDrag(){
+  cancelPend();
+  if(!drag) return; const d=drag; drag=null;
+  d.rows.forEach(r=>r.style.transform='');
+  d.el.classList.remove('dragging');
+  if(d.target!==d.idx) move(d.id,d.target); else renderBoard();
+}
+addEventListener('pointerup',endDrag); addEventListener('touchend',endDrag); addEventListener('touchcancel',endDrag);
+addEventListener('pointercancel',()=>{ if(pend) cancelPend(); else if(drag && drag.el && !drag.touch) endDrag(); });
+
+/* ---------- Champions selector ---------- */
+function renderChamps(){
+  $('#champs').innerHTML = P4.map(c=>{
+    const opts = state.order.filter(id=>T[id].conf===c);
+    return `<label>${c}</label><select data-c="${c}"><option value="">Auto (highest ranked)</option>${opts.map(id=>`<option value="${id}" ${state.champs[c]===id?'selected':''}>#${state.order.indexOf(id)+1} ${T[id].name}</option>`).join('')}</select>`;
+  }).join('');
+}
+$('#champs').addEventListener('change',e=>{
+  const s=e.target.closest('select'); if(!s) return;
+  if(s.value) state.champs[s.dataset.c]=s.value; else delete state.champs[s.dataset.c];
+  save(); renderAll();
+});
+
+/* ---------- Bracket ---------- */
+function renderBracket(){
+  const sel=compute(), S=n=>sel.seeds[n-1];
+  const P=state.picks;
+  const games={};
+  const def=(k,a,b,lbl)=>{ games[k]={a,b,lbl}; if(P[k] && P[k]!==a && P[k]!==b) delete P[k]; if(!a||!b) delete P[k]; return P[k]||null; };
+  const w89=def('r89',S(8),S(9),'First round · at #8');
+  const w512=def('r512',S(5),S(12),'First round · at #5');
+  const w611=def('r611',S(6),S(11),'First round · at #6');
+  const w710=def('r710',S(7),S(10),'First round · at #7');
+  const q1=def('q1',S(1),w89,'Quarterfinal');
+  const q2=def('q2',S(4),w512,'Quarterfinal');
+  const q3=def('q3',S(3),w611,'Quarterfinal');
+  const q4=def('q4',S(2),w710,'Quarterfinal');
+  const s1=def('s1',q1,q2,'Semifinal');
+  const s2=def('s2',q3,q4,'Semifinal');
+  const ch=def('f',s1,s2,'National Championship');
+  save();
+  const slot=(k,id)=>{
+    if(!id) return `<div class="slot tbd"><span class="sd"></span><span class="nm">Winner TBD</span></div>`;
+    const t=T[id], g=games[k], can=g.a&&g.b, w=P[k];
+    return `<button class="slot${can?' pickable':''}${w===id?' win':''}${w&&w!==id?' lose':''}" ${can?`data-k="${k}" data-id="${id}"`:'disabled'}>
+      <span class="sd">${sel.seedOf(id)}</span>${badge(t,1)}<span class="nm">${t.name}</span></button>`;
+  };
+  const card=k=>{ const g=games[k]; return `<div class="game"><div class="lbl">${g.lbl}</div>${slot(k,g.a)}${slot(k,g.b)}</div>`; };
+  const col=(title,keys)=>`<div class="round"><h3>${title}</h3><div class="games">${keys.map(card).join('')}</div></div>`;
+  $('#bracket').innerHTML =
+    col('First Round',['r89','r512','r611','r710'])+
+    col('Quarterfinals',['q1','q2','q3','q4'])+
+    col('Semifinals',['s1','s2'])+
+    col('Championship',['f']);
+  $('#champ').innerHTML = ch
+    ? `<div class="t">NATIONAL CHAMPION</div><div class="n">${badge(T[ch],1)} ${T[ch].name}</div>`
+    : `<div class="t">NATIONAL CHAMPION</div><div class="n" style="font-size:17px;color:var(--dim);font-weight:500">Tap teams to pick winners</div>`;
+  $('#field').innerHTML = sel.seeds.map((id,i)=>`<span class="${sel.auto[id]?'a':''}">${i+1}. ${T[id].name}${sel.auto[id]?' ★':''}</span>`).join('')
+    + `<span style="border-color:var(--red);color:var(--red)">Out: ${sel.out.map(id=>T[id].name).join(', ')}</span>`;
+}
+$('#bracket').addEventListener('click',e=>{
+  const b=e.target.closest('[data-k]'); if(!b) return;
+  const k=b.dataset.k, id=b.dataset.id;
+  state.picks[k] = state.picks[k]===id ? undefined : id;
+  if(!state.picks[k]) delete state.picks[k];
+  save(); renderBracket();
+});
+
+/* ---------- Shared submissions ---------- */
+let db=null, user=null, uid=null, subs=[], isOwner=false, canWrite=true, expanded=new Set();
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const msg=(t,cls='')=>{ const m=$('#subMsg'); m.textContent=t; m.className='msg '+cls; };
+const ago=ts=>{ const m=Math.round((Date.now()-ts)/60000); if(!(m>=0)) return ''; if(m<1) return 'just now'; if(m<60) return m+'m ago'; const h=Math.round(m/60); if(h<24) return h+'h ago'; return Math.round(h/24)+'d ago'; };
+try{ const n=localStorage.getItem(KEY+'-name'); if(n) $('#uname').value=n; }catch(e){}
+
+function cleanSub(d){
+  const v=(typeof d.data==='function'?d.data():d.data)||{};
+  const order=Array.isArray(v.order)?v.order.filter(id=>T[id]):[];
+  if(order.length!==25 || new Set(order).size!==25) return null;
+  const name=String(v.name||'').trim().slice(0,40)||'Anonymous';
+  const champion=T[v.champion]?v.champion:null;
+  const champs={}; if(v.champs && typeof v.champs==='object') P4.forEach(c=>{ if(T[v.champs[c]]?.conf===c) champs[c]=v.champs[c]; });
+  const picks={}; if(v.picks && typeof v.picks==='object') Object.entries(v.picks).forEach(([k,id])=>{ if(/^(r\d+|q\d|s\d|f)$/.test(k) && T[id]) picks[k]=id; });
+  return {id:d.id, name, order, champs, picks, champion, at:+v.updatedAt||0};
+}
+function renderUsers(){
+  const note=$('#usersNote');
+  if(!db){ note.textContent=window.sharedState==='loading'?'Connecting to shared rankings…':'Shared rankings aren’t available right now.'; $('#users').innerHTML=''; $('#cons').innerHTML=''; return; }
+  note.textContent = subs.length ? `${subs.length} submission${subs.length>1?'s':''} · tap a card to see the full Top 25` : 'No rankings submitted yet. Be the first: set your board, enter your name and tap Submit.';
+  // consensus = average rank
+  if(subs.length){
+    const avg=DEFAULT.map(id=>({id, a:subs.reduce((s,u)=>s+u.order.indexOf(id)+1,0)/subs.length})).sort((x,y)=>x.a-y.a);
+    const champCount={}; subs.forEach(u=>{ if(u.champion) champCount[u.champion]=(champCount[u.champion]||0)+1; });
+    const topChamp=Object.entries(champCount).sort((a,b)=>b[1]-a[1])[0];
+    $('#cons').innerHTML=`<div class="ucard"><div class="uhead"><h4>Consensus</h4><small>average rank of ${subs.length}</small></div>
+      ${topChamp?`<div class="umeta">Most-picked champion: ${badge(T[topChamp[0]],1)} ${esc(T[topChamp[0]].name)} (${topChamp[1]})</div>`:''}
+      <ol class="ulist">${avg.map((x,i)=>`<li><span class="n">${i+1}</span>${badge(T[x.id],1)}<span>${esc(T[x.id].name)}</span><span class="d" style="color:var(--dim)">${x.a.toFixed(1)}</span></li>`).join('')}</ol></div>`;
+  } else $('#cons').innerHTML='';
+  const list=[...subs].sort((a,b)=>(b.id===uid)-(a.id===uid) || b.at-a.at);
+  $('#users').innerHTML=list.map(u=>{
+    const open=expanded.has(u.id);
+    const rows=u.order.map((id,i)=>{ const d=DEFAULT.indexOf(id)-i; return `<li><span class="n">${i+1}</span>${badge(T[id],1)}<span>${esc(T[id].name)}</span><span class="d ${d>0?'up':d<0?'dn':''}">${d>0?'▲'+d:d<0?'▼'+(-d):''}</span></li>`; }).join('');
+    return `<div class="ucard${u.id===uid?' me':''}" data-u="${esc(u.id)}">
+      <div class="uhead"><h4>${esc(u.name)}${u.id===uid?' <small>(you)</small>':''}</h4><small>${ago(u.at)}</small>${isOwner?`<button class="x" data-del="${esc(u.id)}" title="Remove submission" aria-label="Remove submission">✕</button>`:''}</div>
+      <div class="umeta">${u.champion?`Champion pick: ${badge(T[u.champion],1)} ${esc(T[u.champion].name)}`:'No champion picked'}</div>
+      ${open?`<ol class="ulist">${rows}</ol>`:`<div class="mini">${u.order.slice(0,10).map(id=>badge(T[id],1)).join('')}</div>`}
+      <div class="uact"><button class="btn" data-tog="${esc(u.id)}">${open?'Show less':'Show all 25'}</button><button class="btn" data-load="${esc(u.id)}">Load into my board</button></div>
+    </div>`;
+  }).join('');
+}
+$('#users').addEventListener('click',async e=>{
+  const t=e.target.closest('button'); if(!t) return;
+  if(t.dataset.tog){ const id=t.dataset.tog; expanded.has(id)?expanded.delete(id):expanded.add(id); renderUsers(); }
+  if(t.dataset.load){ const u=subs.find(x=>x.id===t.dataset.load); if(!u) return;
+    state={order:[...u.order],champs:{...u.champs},picks:{...u.picks}}; save(); renderAll();
+    const b=document.querySelector('.tabs button[data-t=board]'); if(getComputedStyle($('.tabs')).display!=='none') b.click(); else $('#boardSec').scrollIntoView({behavior:'smooth'});
+    msg(`Loaded ${u.name}'s ranking into your board.`,'ok'); }
+  if(t.dataset.del && isOwner){ try{ await db.remove(t.dataset.del); }catch(err){ $('#usersNote').textContent='Couldn’t remove that submission. Try again.'; } }
+});
+$('#subForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const name=$('#uname').value.trim().replace(/\s+/g,' ').slice(0,40);
+  if(!name){ msg('Enter your name first.','err'); $('#uname').focus(); return; }
+  if(!db || !uid){ msg('Shared rankings aren’t connected yet. Try again in a moment.','err'); return; }
+  if(!canWrite){ msg('Your access to this page is view-only, so you can’t submit. Ask the owner to add you as a Contributor.','err'); return; }
+  try{ localStorage.setItem(KEY+'-name',name); }catch(_){}
+  const btn=$('#subBtn'); btn.disabled=true; msg('Submitting…');
+  const body={name, order:[...state.order], champs:{...state.champs}, picks:{...state.picks}, champion:state.picks.f||null, updatedAt:Date.now()};
+  const write=()=>db.save(body);
+  try{ await write(); msg(`Submitted! Your ranking is on the Everyone board${subs.some(u=>u.id===uid)?' (updated)':''}.`,'ok'); }
+  catch(err){
+    if(err?.code==='unavailable'||err?.code==='deadline-exceeded'){ try{ await new Promise(r=>setTimeout(r,600+Math.random()*600)); await write(); msg('Submitted!','ok'); btn.disabled=false; return; }catch(_){} }
+    if(err?.code==='resource-exhausted') msg('The board hit its free daily limit. Try again tomorrow.','err');
+    else msg('Couldn’t submit right now. Try again in a moment.','err');
+  }
+  btn.disabled=false;
+});
+window.sharedState='loading';
+window.initShared=backend=>{
+  window.sharedState=backend?'ready':'off';
+  db=backend; uid=backend?.uid||null;
+  if(!db){ renderUsers(); return; }
+  let timer=setTimeout(()=>{ $('#usersNote').textContent='Can’t reach shared rankings yet; they’ll appear once the connection returns.'; },10000);
+  db.subscribe(docs=>{
+    clearTimeout(timer);
+    subs=docs.map(cleanSub).filter(Boolean);
+    const mine=subs.find(u=>u.id===uid); if(mine && !$('#uname').value) $('#uname').value=mine.name;
+    renderUsers();
+  },()=>{ clearTimeout(timer); $('#usersNote').textContent='Shared rankings stopped loading. Reload the page to try again.'; });
+};
+
+/* ---------- Misc ---------- */
+function renderAll(flashId){ renderBoard(flashId); renderChamps(); renderBracket(); }
+$('#reset').onclick=()=>{ state={order:[...DEFAULT],champs:{},picks:{}}; save(); renderAll(); };
+$('#clearPicks').onclick=()=>{ state.picks={}; save(); renderBracket(); };
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $('main').dataset.tab=b.dataset.t; scrollTo(0,0);
+});
+renderAll();
+</script>
+<script type="module">
+import { firebaseConfig } from './firebase-config.js';
+import { initializeApp, getAuth, signInAnonymously, getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from './vendor/firebase.js';
+async function connect(){
+  if(!firebaseConfig || !firebaseConfig.apiKey){ window.initShared(null); return; }
+  try{
+    const app=initializeApp(firebaseConfig);
+    const cred=await signInAnonymously(getAuth(app));
+    const fs=getFirestore(app), uid=cred.user.uid;
+    window.initShared({
+      uid,
+      save: body=>setDoc(doc(fs,'submissions',uid),body),
+      remove: id=>deleteDoc(doc(fs,'submissions',id)),
+      subscribe: (next,err)=>onSnapshot(collection(fs,'submissions'),snap=>next(snap.docs),err),
+    });
+  }catch(e){ console.error(e); window.initShared(null); }
+}
+connect();
+</script>
+</body>
+</html>
