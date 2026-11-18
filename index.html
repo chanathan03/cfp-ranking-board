@@ -126,6 +126,10 @@ select{font:inherit; font-size:15px; background:var(--turf2); color:var(--chalk)
 .submit input{flex:1; min-width:0; font:inherit; font-size:17px; background:var(--turf2); color:var(--chalk); border:1.5px solid var(--line); border-radius:8px; padding:7px 10px}
 .submit input:focus{outline:none; border-color:var(--gold)}
 .msg{font-size:15px; color:var(--dim); min-height:20px; margin:0 0 10px}
+.substatus{font-size:15px; margin:0 0 4px; color:var(--dim); display:none}
+.substatus.on{display:block}
+.substatus b{color:var(--chalk); font-weight:600}
+.substatus .dirty{color:var(--gold); font-weight:600}
 .msg.ok{color:var(--gold)} .msg.err{color:var(--red)}
 #usersSec{grid-column:1/-1}
 .users{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:12px}
@@ -192,6 +196,7 @@ footer a{color:var(--dim)}
   <section id="boardSec">
     <h2>Top 25</h2>
     <form class="submit" id="subForm"><input id="uname" maxlength="40" placeholder="Your name" autocomplete="nickname"><button class="btn gold" id="subBtn" type="submit">Submit my ranking</button></form>
+    <p class="substatus" id="subStatus"></p>
     <p class="msg" id="subMsg"></p>
     <p class="hint">Drag any team up or down (on a phone, press and hold a row first). Arrows nudge one spot.</p>
     <div id="board"></div>
@@ -427,7 +432,7 @@ $('#bracket').addEventListener('click',e=>{
   const k=b.dataset.k, id=b.dataset.id;
   state.picks[k] = state.picks[k]===id ? undefined : id;
   if(!state.picks[k]) delete state.picks[k];
-  save(); renderBracket();
+  save(); renderBracket(); updateSubmitUI();
 });
 
 /* ---------- Shared submissions ---------- */
@@ -460,6 +465,7 @@ function renderUsers(){
       ${topChamp?`<div class="umeta">Most-picked champion: ${badge(T[topChamp[0]],1)} ${esc(T[topChamp[0]].name)} (${topChamp[1]})</div>`:''}
       <ol class="ulist">${avg.map((x,i)=>`<li><span class="n">${i+1}</span>${badge(T[x.id],1)}<span>${esc(T[x.id].name)}</span><span class="d" style="color:var(--dim)">${x.a.toFixed(1)}</span></li>`).join('')}</ol></div>`;
   } else $('#cons').innerHTML='';
+  updateSubmitUI();
   const list=[...subs].sort((a,b)=>(b.id===uid)-(a.id===uid) || b.at-a.at);
   $('#users').innerHTML=list.map(u=>{
     const open=expanded.has(u.id);
@@ -468,7 +474,7 @@ function renderUsers(){
       <div class="uhead"><h4>${esc(u.name)}${u.id===uid?' <small>(you)</small>':''}</h4><small>${ago(u.at)}</small>${isOwner?`<button class="x" data-del="${esc(u.id)}" title="Remove submission" aria-label="Remove submission">✕</button>`:''}</div>
       <div class="umeta">${u.champion?`Champion pick: ${badge(T[u.champion],1)} ${esc(T[u.champion].name)}`:'No champion picked'}</div>
       ${open?`<ol class="ulist">${rows}</ol>`:`<div class="mini">${u.order.slice(0,10).map(id=>badge(T[id],1)).join('')}</div>`}
-      <div class="uact"><button class="btn" data-tog="${esc(u.id)}">${open?'Show less':'Show all 25'}</button><button class="btn" data-load="${esc(u.id)}">Load into my board</button></div>
+      <div class="uact"><button class="btn" data-tog="${esc(u.id)}">${open?'Show less':'Show all 25'}</button>${u.id===uid?`<button class="btn gold" data-load="${esc(u.id)}" data-edit="1">Edit my picks</button><button class="btn danger" data-delmine="1">Delete mine</button>`:`<button class="btn" data-load="${esc(u.id)}">Load into my board</button>`}</div>
     </div>`;
   }).join('');
 }
@@ -478,7 +484,14 @@ $('#users').addEventListener('click',async e=>{
   if(t.dataset.load){ const u=subs.find(x=>x.id===t.dataset.load); if(!u) return;
     state={order:[...u.order],champs:{...u.champs},picks:{...u.picks}}; save(); renderAll();
     const b=document.querySelector('.tabs button[data-t=board]'); b.click();
-    msg(`Loaded ${u.name}'s ranking into your board.`,'ok'); }
+    if(t.dataset.edit){ $('#uname').value=u.name; msg('Editing your picks. Make your changes, then tap “Update my ranking.”','ok'); }
+    else msg(`Loaded ${u.name}'s ranking into your board.`,'ok'); }
+  if(t.dataset.delmine){
+    if(!t.classList.contains('arm')){ t.classList.add('arm'); t.textContent='Tap again to delete'; setTimeout(()=>{ if(t.isConnected){ t.classList.remove('arm'); t.textContent='Delete mine'; } },4000); return; }
+    t.disabled=true; t.textContent='Deleting…';
+    try{ await db.remove(uid); msg('Your submission was deleted. You can submit again anytime.','ok'); }
+    catch(_){ t.disabled=false; t.classList.remove('arm'); t.textContent='Delete mine'; $('#usersNote').textContent='Couldn’t delete your submission. Try again.'; }
+  }
   if(t.dataset.del && isOwner){ try{ await window.adminApi.remove(t.dataset.del); }catch(err){ $('#usersNote').textContent='Couldn’t remove that submission. Try again.'; } }
 });
 $('#subForm').addEventListener('submit',async e=>{
@@ -493,11 +506,11 @@ $('#subForm').addEventListener('submit',async e=>{
   const write=()=>db.save(body);
   try{ await write(); msg(`Submitted! Your ranking is on Cluck and Huddle Picks${subs.some(u=>u.id===uid)?' (updated)':''}.`,'ok'); }
   catch(err){
-    if(err?.code==='unavailable'||err?.code==='deadline-exceeded'){ try{ await new Promise(r=>setTimeout(r,600+Math.random()*600)); await write(); msg('Submitted!','ok'); btn.disabled=false; return; }catch(_){} }
+    if(err?.code==='unavailable'||err?.code==='deadline-exceeded'){ try{ await new Promise(r=>setTimeout(r,600+Math.random()*600)); await write(); msg('Submitted!','ok'); btn.disabled=false; updateSubmitUI(); return; }catch(_){} }
     if(err?.code==='resource-exhausted') msg('The board hit its free daily limit. Try again tomorrow.','err');
     else msg('Couldn’t submit right now. Try again in a moment.','err');
   }
-  btn.disabled=false;
+  btn.disabled=false; updateSubmitUI();
 });
 window.sharedState='loading';
 window.initShared=backend=>{
@@ -512,6 +525,19 @@ window.initShared=backend=>{
     renderUsers();
   },()=>{ clearTimeout(timer); $('#usersNote').textContent='Shared rankings stopped loading. Reload the page to try again.'; });
 };
+
+/* ---------- Submit status (edit support) ---------- */
+const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const norm=o=>Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v).sort());
+function updateSubmitUI(){
+  const st=$('#subStatus'), btn=$('#subBtn');
+  const mine=uid?subs.find(u=>u.id===uid):null;
+  if(!btn.disabled) btn.textContent=mine?'Update my ranking':'Submit my ranking';
+  if(!mine){ st.className='substatus'; st.innerHTML=''; return; }
+  const dirty=!same(mine.order,state.order) || !same(norm(mine.champs),norm(state.champs)) || !same(norm(mine.picks),norm(state.picks));
+  st.className='substatus on';
+  st.innerHTML=`Submitted as <b>${esc(mine.name)}</b> ${esc(ago(mine.at))}. `+(dirty?'<span class="dirty">Your board has changes you haven’t submitted.</span>':'Your board matches your submission.');
+}
 
 /* ---------- Admin ---------- */
 window.setAdmin=(on,email)=>{
@@ -542,9 +568,9 @@ $('#clearAll').addEventListener('click',async()=>{
 });
 
 /* ---------- Misc ---------- */
-function renderAll(flashId){ renderBoard(flashId); renderChamps(); renderBracket(); }
+function renderAll(flashId){ renderBoard(flashId); renderChamps(); renderBracket(); if(typeof updateSubmitUI==='function') updateSubmitUI(); }
 $('#reset').onclick=()=>{ state={order:[...DEFAULT],champs:{},picks:{}}; save(); renderAll(); };
-$('#clearPicks').onclick=()=>{ state.picks={}; save(); renderBracket(); };
+$('#clearPicks').onclick=()=>{ state.picks={}; save(); renderBracket(); updateSubmitUI(); };
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
   $('main').dataset.tab=b.dataset.t; scrollTo(0,0);
