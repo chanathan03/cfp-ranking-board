@@ -185,7 +185,7 @@ footer a{color:var(--dim)}
       <div class="presented">Presented by: Cluck and Huddle</div>
     </div>
   </div>
-  <div class="sub" id="asof">Committee Top 25 · Nov 10, 2026 release</div>
+  <div class="sub" id="asof">Committee Top 25 · Nov 17, 2026 release</div>
   <div class="toolbar">
     <button class="btn gold" id="reset">↺ Reset to committee</button>
     <button class="btn" id="clearPicks">Clear bracket picks</button>
@@ -222,46 +222,51 @@ footer a{color:var(--dim)}
   </section>
 </main>
 <footer>
-  Rankings: <a href="https://www.ncaa.com/news/football/article/2026-11-10/georgia-utah-lead-second-college-football-playoff-rankings-2026">NCAA.com, CFP rankings Nov 10, 2026</a> · Format: <a href="https://collegefootballplayoff.com/sports/2024/5/29/12-team-format">collegefootballplayoff.com</a>. Team badges are simple color/initial marks, not official logos. Your working board is saved in this browser; submitted rankings are shared with everyone who opens this page.
+  Rankings: <a href="https://www.ncaa.com/news/football/article/2026-11-17/georgia-leads-texas-enters-top-five-third-college-football-playoff-rankings-2026">NCAA.com, CFP rankings Nov 17, 2026</a> · Format: <a href="https://collegefootballplayoff.com/sports/2024/5/29/12-team-format">collegefootballplayoff.com</a>. Team badges are simple color/initial marks, not official logos. Your working board is saved in this browser; submitted rankings are shared with everyone who opens this page.
   <div class="admin"><button class="linkbtn" id="adminBtn">Admin sign-in</button><span id="adminStatus"></span></div>
 </footer>
 
 <script>
 const TEAMS = [
-  ['uga','Georgia','8-1','SEC','UGA','#BA0C2F','#FFFFFF'],
-  ['utah','Utah','9-0','Big 12','UTAH','#CC0000','#FFFFFF'],
-  ['bama','Alabama','7-2','SEC','BAMA','#9E1B32','#FFFFFF'],
-  ['ucla','UCLA','9-0','Big Ten','UCLA','#2D68C4','#F2A900'],
-  ['nd','Notre Dame','8-1','Independent','ND','#0C2340','#C99700'],
-  ['tex','Texas','7-2','SEC','TEX','#BF5700','#FFFFFF'],
-  ['mia','Miami (FL)','8-1','ACC','MIA','#005030','#F47321'],
-  ['tenn','Tennessee','7-2','SEC','TENN','#FF8200','#FFFFFF'],
-  ['iu','Indiana','8-1','Big Ten','IU','#990000','#FFFFFF'],
-  ['byu','BYU','7-2','Big 12','BYU','#002E5D','#FFFFFF'],
-  ['uk','Kentucky','7-2','SEC','UK','#0033A0','#FFFFFF'],
-  ['ttu','Texas Tech','8-1','Big 12','TTU','#CC0000','#111111'],
-  ['wake','Wake Forest','8-1','ACC','WAKE','#111111','#9E7E38'],
-  ['uh','Houston','7-2','Big 12','UH','#C8102E','#FFFFFF'],
-  ['iowa','Iowa','7-2','Big Ten','IOWA','#FFCD00','#111111'],
-  ['ore','Oregon','6-3','Big Ten','ORE','#154733','#FEE123'],
-  ['sc','South Carolina','6-3','SEC','SC','#73000A','#FFFFFF'],
-  ['usc','USC','7-2','Big Ten','USC','#990000','#FFC72C'],
-  ['miss','Ole Miss','6-3','SEC','MISS','#14213D','#CE1126'],
-  ['osu','Ohio State','6-3','Big Ten','OSU','#BB0000','#C9CED1'],
-  ['lsu','LSU','6-3','SEC','LSU','#461D7C','#FDD023'],
-  ['miz','Missouri','6-3','SEC','MIZ','#F1B82D','#111111'],
-  ['ariz','Arizona','7-2','Big 12','ARIZ','#003366','#CC0033'],
-  ['bsu','Boise State','8-1','Pac-12','BSU','#0033A0','#D64309'],
-  ['okst','Oklahoma State','6-3','Big 12','OKST','#FF7300','#111111'],
-].map(([id,name,rec,conf,ab,c1,c2])=>({id,name,rec,conf,ab,c1,c2}));
+  ['uga','Georgia','9-1','SEC','UGA','#BA0C2F','#FFFFFF'],
+  ['utah','Utah','10-0','Big 12','UTAH','#CC0000','#FFFFFF'],
+  ['bama','Alabama','8-2','SEC','BAMA','#9E1B32','#FFFFFF'],
+  ['ucla','UCLA','10-0','Big Ten','UCLA','#2D68C4','#F2A900'],
+  ['tex','Texas','8-2','SEC','TEX','#BF5700','#FFFFFF'],
+  ['nd','Notre Dame','9-1','Independent','ND','#0C2340','#C99700'],
+  ['mia','Miami (FL)','9-1','ACC','MIA','#005030','#F47321'],
+  ['iu','Indiana','9-1','Big Ten','IU','#990000','#FFFFFF'],
+  ['tenn','Tennessee','8-2','SEC','TENN','#FF8200','#FFFFFF'],
+  ['byu','BYU','8-2','Big 12','BYU','#002E5D','#FFFFFF'],
+  ['wake','Wake Forest','9-1','ACC','WAKE','#111111','#9E7E38'],
+  ['ttu','Texas Tech','9-1','Big 12','TTU','#CC0000','#111111'],
+  ['ore','Oregon','7-3','Big Ten','ORE','#154733','#FEE123'],
+  ['osu','Ohio State','7-3','Big Ten','OSU','#BB0000','#C9CED1'],
+  ['iowa','Iowa','8-2','Big Ten','IOWA','#FFCD00','#111111'],
+  ['uk','Kentucky','7-3','SEC','UK','#0033A0','#FFFFFF'],
+  ['bsu','Boise State','9-1','Pac-12','BSU','#0033A0','#D64309'],
+  ['usc','USC','7-3','Big Ten','USC','#990000','#FFC72C'],
+  ['ariz','Arizona','7-3','Big 12','ARIZ','#003366','#CC0033'],
+  ['uh','Houston','7-3','Big 12','UH','#C8102E','#FFFFFF'],
+  ['sc','South Carolina','6-4','SEC','SC','#73000A','#FFFFFF'],
+  ['ou','Oklahoma','6-4','SEC','OU','#841617','#FDF9D8'],
+  ['lou','Louisville','7-3','ACC','LOU','#C8102E','#111111'],
+  ['uf','Florida','6-4','SEC','UF','#0021A5','#FA4616'],
+  ['miss','Ole Miss','6-4','SEC','MISS','#14213D','#CE1126'],
+  // dropped out this week; kept so older submissions still display
+  ['lsu','LSU','6-4','SEC','LSU','#461D7C','#FDD023',1],
+  ['miz','Missouri','6-4','SEC','MIZ','#F1B82D','#111111',1],
+  ['okst','Oklahoma State','6-4','Big 12','OKST','#FF7300','#111111',1],
+].map(([id,name,rec,conf,ab,c1,c2,out])=>({id,name,rec,conf,ab,c1,c2,out:!!out}));
 const T = Object.fromEntries(TEAMS.map(t=>[t.id,t]));
-const DEFAULT = TEAMS.map(t=>t.id);
+const DEFAULT = TEAMS.filter(t=>!t.out).map(t=>t.id);
 const P4 = ['SEC','Big Ten','Big 12','ACC'];
 const G6 = ['Pac-12','Mountain West','American','Sun Belt','MAC','C-USA'];
-const KEY = 'cfp-board-2026-v1';
+const KEY = 'cfp-board-2026-nov17'; // bump each release so boards start from the new committee ranking
+const NAME_KEY = 'cfp-board-2026-v1-name';
 
 let state = {order:[...DEFAULT], champs:{}, picks:{}};
-try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && Array.isArray(s.order) && s.order.length===25 && s.order.every(id=>T[id])) state = Object.assign(state,s); }catch(e){}
+try{ const s = JSON.parse(localStorage.getItem(KEY)); if(s && Array.isArray(s.order) && s.order.length===25 && s.order.every(id=>T[id]&&!T[id].out)) state = Object.assign(state,s); }catch(e){}
 const save = ()=>{ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} };
 
 const $ = s=>document.querySelector(s);
@@ -440,7 +445,7 @@ let db=null, user=null, uid=null, subs=[], isOwner=false, canWrite=true, expande
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const msg=(t,cls='')=>{ const m=$('#subMsg'); m.textContent=t; m.className='msg '+cls; };
 const ago=ts=>{ const m=Math.round((Date.now()-ts)/60000); if(!(m>=0)) return ''; if(m<1) return 'just now'; if(m<60) return m+'m ago'; const h=Math.round(m/60); if(h<24) return h+'h ago'; return Math.round(h/24)+'d ago'; };
-try{ const n=localStorage.getItem(KEY+'-name'); if(n) $('#uname').value=n; }catch(e){}
+try{ const n=localStorage.getItem(NAME_KEY); if(n) $('#uname').value=n; }catch(e){}
 
 function cleanSub(d){
   const v=(typeof d.data==='function'?d.data():d.data)||{};
@@ -458,7 +463,7 @@ function renderUsers(){
   note.textContent = subs.length ? `${subs.length} submission${subs.length>1?'s':''} · tap a card to see the full Top 25` : 'No rankings submitted yet. Be the first: set your board, enter your name and tap Submit.';
   // consensus = average rank
   if(subs.length){
-    const avg=DEFAULT.map(id=>({id, a:subs.reduce((s,u)=>s+u.order.indexOf(id)+1,0)/subs.length})).sort((x,y)=>x.a-y.a);
+    const avg=DEFAULT.map(id=>({id, a:subs.reduce((s,u)=>{ const r=u.order.indexOf(id); return s+(r<0?26:r+1); },0)/subs.length})).sort((x,y)=>x.a-y.a);
     const champCount={}; subs.forEach(u=>{ if(u.champion) champCount[u.champion]=(champCount[u.champion]||0)+1; });
     const topChamp=Object.entries(champCount).sort((a,b)=>b[1]-a[1])[0];
     $('#cons').innerHTML=`<div class="ucard"><div class="uhead"><h4>Consensus</h4><small>average rank of ${subs.length}</small></div>
@@ -469,7 +474,7 @@ function renderUsers(){
   const list=[...subs].sort((a,b)=>(b.id===uid)-(a.id===uid) || b.at-a.at);
   $('#users').innerHTML=list.map(u=>{
     const open=expanded.has(u.id);
-    const rows=u.order.map((id,i)=>{ const d=DEFAULT.indexOf(id)-i; return `<li><span class="n">${i+1}</span>${badge(T[id],1)}<span>${esc(T[id].name)}</span><span class="d ${d>0?'up':d<0?'dn':''}">${d>0?'▲'+d:d<0?'▼'+(-d):''}</span></li>`; }).join('');
+    const rows=u.order.map((id,i)=>{ const c=DEFAULT.indexOf(id), d=c-i; return `<li><span class="n">${i+1}</span>${badge(T[id],1)}<span>${esc(T[id].name)}</span><span class="d ${c<0?'':d>0?'up':d<0?'dn':''}">${c<0?'NR':d>0?'▲'+d:d<0?'▼'+(-d):''}</span></li>`; }).join('');
     return `<div class="ucard${u.id===uid?' me':''}" data-u="${esc(u.id)}">
       <div class="uhead"><h4>${esc(u.name)}${u.id===uid?' <small>(you)</small>':''}</h4><small>${ago(u.at)}</small>${isOwner?`<button class="x" data-del="${esc(u.id)}" title="Remove submission" aria-label="Remove submission">✕</button>`:''}</div>
       <div class="umeta">${u.champion?`Champion pick: ${badge(T[u.champion],1)} ${esc(T[u.champion].name)}`:'No champion picked'}</div>
@@ -500,7 +505,7 @@ $('#subForm').addEventListener('submit',async e=>{
   if(!name){ msg('Enter your name first.','err'); $('#uname').focus(); return; }
   if(!db || !uid){ msg('Shared rankings aren’t connected yet. Try again in a moment.','err'); return; }
   if(!canWrite){ msg('Your access to this page is view-only, so you can’t submit. Ask the owner to add you as a Contributor.','err'); return; }
-  try{ localStorage.setItem(KEY+'-name',name); }catch(_){}
+  try{ localStorage.setItem(NAME_KEY,name); }catch(_){}
   const btn=$('#subBtn'); btn.disabled=true; msg('Submitting…');
   const body={name, order:[...state.order], champs:{...state.champs}, picks:{...state.picks}, champion:state.picks.f||null, updatedAt:Date.now()};
   const write=()=>db.save(body);

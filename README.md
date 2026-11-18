@@ -2,7 +2,7 @@
 
 Drag-and-drop College Football Playoff Top 25 with a live 12-team bracket, plus shared "rankings by user" stored in Firebase.
 
-- Starts from the CFP committee's Nov 10, 2026 Top 25.
+- Starts from the CFP committee's Nov 17, 2026 Top 25.
 - Drag any team (press and hold on phones) or use the arrows to re-rank; the bracket rebuilds live.
 - Bracket rules: SEC, Big Ten, Big 12 and ACC champions get auto bids, plus the top Group of 6 team (always the 12 seed) and Notre Dame if it's in the top 12. Seeds 1–4 get byes.
 - Enter a name and submit your ranking; the **Cluck and Huddle Picks** tab shows every submission and a consensus ranking.
