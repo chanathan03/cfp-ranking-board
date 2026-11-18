@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Definitive CFP Rankings</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Graduate&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -22,6 +26,8 @@ body{
   min-height:100vh; -webkit-tap-highlight-color:transparent;
 }
 header{padding:18px 16px 8px; max-width:1280px; margin:0 auto}
+.brand{display:flex; align-items:center; gap:16px}
+.logo{height:clamp(64px,11vw,104px); width:auto; flex:none; filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
 h1{font-family:'Graduate',serif; font-weight:400; font-size:clamp(26px,5vw,40px); margin:0; letter-spacing:.5px; line-height:1}
 h1 span{color:var(--gold)}
 .presented{font-family:'Graduate',serif; color:var(--gold); font-size:clamp(14px,2.6vw,18px); letter-spacing:.6px; margin-top:8px}
@@ -168,8 +174,13 @@ footer a{color:var(--dim)}
 </head>
 <body>
 <header>
-  <h1>The Definitive <span>CFP Rankings</span></h1>
-  <div class="presented">Presented by: Cluck and Huddle</div>
+  <div class="brand">
+    <img class="logo" src="assets/logo.svg" alt="Five chickens in football helmets huddled around a football">
+    <div>
+      <h1>The Definitive <span>CFP Rankings</span></h1>
+      <div class="presented">Presented by: Cluck and Huddle</div>
+    </div>
+  </div>
   <div class="sub" id="asof">Committee Top 25 · Nov 10, 2026 release</div>
   <div class="toolbar">
     <button class="btn gold" id="reset">↺ Reset to committee</button>
