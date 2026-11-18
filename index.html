@@ -27,7 +27,10 @@ body{
 }
 header{padding:18px 16px 8px; max-width:1280px; margin:0 auto}
 .brand{display:flex; align-items:center; gap:16px}
-.logo{height:clamp(64px,11vw,104px); width:auto; flex:none; filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
+.logo-link{display:block; flex:none; border-radius:12px; transition:transform .15s}
+.logo-link:hover{transform:scale(1.04)}
+.logo-link:focus-visible{outline:2px solid var(--gold); outline-offset:4px}
+.logo{display:block; height:clamp(64px,11vw,104px); width:auto; flex:none; filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}
 h1{font-family:'Graduate',serif; font-weight:400; font-size:clamp(26px,5vw,40px); margin:0; letter-spacing:.5px; line-height:1}
 h1 span{color:var(--gold)}
 .presented{font-family:'Graduate',serif; color:var(--gold); font-size:clamp(14px,2.6vw,18px); letter-spacing:.6px; margin-top:8px}
@@ -179,7 +182,7 @@ footer a{color:var(--dim)}
 <body>
 <header>
   <div class="brand">
-    <img class="logo" src="assets/logo.svg" alt="Five chickens in football helmets huddled around a football">
+    <a href="#" class="logo-link" id="homeLink" aria-label="Back to the Top 25" title="Back to the Top 25"><img class="logo" src="assets/logo.svg" alt="Three chickens in football helmets huddled around a football"></a>
     <div>
       <h1>The Definitive <span>CFP Rankings</span></h1>
       <div class="presented">Presented by: Cluck and Huddle</div>
@@ -579,6 +582,11 @@ $('#clearPicks').onclick=()=>{ state.picks={}; save(); renderBracket(); updateSu
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
   $('main').dataset.tab=b.dataset.t; scrollTo(0,0);
+});
+$('#homeLink').addEventListener('click',e=>{
+  e.preventDefault();
+  document.querySelector('.tabs button[data-t=board]').click();
+  scrollTo({top:0,behavior:'smooth'});
 });
 renderAll();
 </script>
