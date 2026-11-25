@@ -188,7 +188,7 @@ footer a{color:var(--dim)}
       <div class="presented">Presented by: Cluck and Huddle</div>
     </div>
   </div>
-  <div class="sub" id="asof">Committee Top 25 · Nov 17, 2026 release</div>
+  <div class="sub" id="asof">Committee Top 25 · Nov 24, 2026 release</div>
   <div class="toolbar">
     <button class="btn gold" id="reset">↺ Reset to committee</button>
     <button class="btn" id="clearPicks">Clear bracket picks</button>
@@ -225,47 +225,49 @@ footer a{color:var(--dim)}
   </section>
 </main>
 <footer>
-  Rankings: <a href="https://www.ncaa.com/news/football/article/2026-11-17/georgia-leads-texas-enters-top-five-third-college-football-playoff-rankings-2026">NCAA.com, CFP rankings Nov 17, 2026</a> · Format: <a href="https://collegefootballplayoff.com/sports/2024/5/29/12-team-format">collegefootballplayoff.com</a>. Team badges are simple color/initial marks, not official logos. Your working board is saved in this browser; submitted rankings are shared with everyone who opens this page.
+  Rankings: <a href="https://www.ncaa.com/news/football/article/2026-11-24/tennessee-rises-alabama-and-indiana-fall-fourth-college-football-playoff-rankings-2026">NCAA.com, CFP rankings Nov 24, 2026</a> · Format: <a href="https://collegefootballplayoff.com/sports/2024/5/29/12-team-format">collegefootballplayoff.com</a>. Team badges are simple color/initial marks, not official logos. Your working board is saved in this browser; submitted rankings are shared with everyone who opens this page.
   <div class="admin"><button class="linkbtn" id="adminBtn">Admin sign-in</button><span id="adminStatus"></span></div>
 </footer>
 
 <script>
 const TEAMS = [
-  ['uga','Georgia','9-1','SEC','UGA','#BA0C2F','#FFFFFF'],
-  ['utah','Utah','10-0','Big 12','UTAH','#CC0000','#FFFFFF'],
-  ['bama','Alabama','8-2','SEC','BAMA','#9E1B32','#FFFFFF'],
-  ['ucla','UCLA','10-0','Big Ten','UCLA','#2D68C4','#F2A900'],
-  ['tex','Texas','8-2','SEC','TEX','#BF5700','#FFFFFF'],
-  ['nd','Notre Dame','9-1','Independent','ND','#0C2340','#C99700'],
-  ['mia','Miami (FL)','9-1','ACC','MIA','#005030','#F47321'],
-  ['iu','Indiana','9-1','Big Ten','IU','#990000','#FFFFFF'],
-  ['tenn','Tennessee','8-2','SEC','TENN','#FF8200','#FFFFFF'],
-  ['byu','BYU','8-2','Big 12','BYU','#002E5D','#FFFFFF'],
-  ['wake','Wake Forest','9-1','ACC','WAKE','#111111','#9E7E38'],
-  ['ttu','Texas Tech','9-1','Big 12','TTU','#CC0000','#111111'],
-  ['ore','Oregon','7-3','Big Ten','ORE','#154733','#FEE123'],
-  ['osu','Ohio State','7-3','Big Ten','OSU','#BB0000','#C9CED1'],
-  ['iowa','Iowa','8-2','Big Ten','IOWA','#FFCD00','#111111'],
-  ['uk','Kentucky','7-3','SEC','UK','#0033A0','#FFFFFF'],
-  ['bsu','Boise State','9-1','Pac-12','BSU','#0033A0','#D64309'],
-  ['usc','USC','7-3','Big Ten','USC','#990000','#FFC72C'],
-  ['ariz','Arizona','7-3','Big 12','ARIZ','#003366','#CC0033'],
-  ['uh','Houston','7-3','Big 12','UH','#C8102E','#FFFFFF'],
-  ['sc','South Carolina','6-4','SEC','SC','#73000A','#FFFFFF'],
-  ['ou','Oklahoma','6-4','SEC','OU','#841617','#FDF9D8'],
-  ['lou','Louisville','7-3','ACC','LOU','#C8102E','#111111'],
-  ['uf','Florida','6-4','SEC','UF','#0021A5','#FA4616'],
-  ['miss','Ole Miss','6-4','SEC','MISS','#14213D','#CE1126'],
-  // dropped out this week; kept so older submissions still display
+  ['uga','Georgia','10-1','SEC','UGA','#BA0C2F','#FFFFFF'],
+  ['utah','Utah','11-0','Big 12','UTAH','#CC0000','#FFFFFF'],
+  ['tex','Texas','9-2','SEC','TEX','#BF5700','#FFFFFF'],
+  ['nd','Notre Dame','10-1','Independent','ND','#0C2340','#C99700'],
+  ['tenn','Tennessee','9-2','SEC','TENN','#FF8200','#FFFFFF'],
+  ['bama','Alabama','9-2','SEC','BAMA','#9E1B32','#FFFFFF'],
+  ['mia','Miami (FL)','10-1','ACC','MIA','#005030','#F47321'],
+  ['wake','Wake Forest','10-1','ACC','WAKE','#111111','#9E7E38'],
+  ['ucla','UCLA','10-1','Big Ten','UCLA','#2D68C4','#F2A900'],
+  ['byu','BYU','9-2','Big 12','BYU','#002E5D','#FFFFFF'],
+  ['ttu','Texas Tech','10-1','Big 12','TTU','#CC0000','#111111'],
+  ['ore','Oregon','8-3','Big Ten','ORE','#154733','#FEE123'],
+  ['iowa','Iowa','9-2','Big Ten','IOWA','#FFCD00','#111111'],
+  ['iu','Indiana','9-2','Big Ten','IU','#990000','#FFFFFF'],
+  ['usc','USC','8-3','Big Ten','USC','#990000','#FFC72C'],
+  ['ariz','Arizona','8-3','Big 12','ARIZ','#003366','#CC0033'],
+  ['ou','Oklahoma','7-4','SEC','OU','#841617','#FDF9D8'],
+  ['uh','Houston','8-3','Big 12','UH','#C8102E','#FFFFFF'],
+  ['lou','Louisville','8-3','ACC','LOU','#C8102E','#111111'],
+  ['uf','Florida','7-4','SEC','UF','#0021A5','#FA4616'],
+  ['osu','Ohio State','7-4','Big Ten','OSU','#BB0000','#C9CED1'],
+  ['miss','Ole Miss','7-4','SEC','MISS','#14213D','#CE1126'],
+  ['miz','Missouri','7-4','SEC','MIZ','#F1B82D','#111111'],
+  ['uw','Washington','7-4','Big Ten','UW','#4B2E83','#B7A57A'],
+  ['neb','Nebraska','7-4','Big Ten','NEB','#E41C38','#FFFFFF'],
+  // dropped out of the rankings; kept so older submissions still display
+  ['uk','Kentucky','7-3','SEC','UK','#0033A0','#FFFFFF',1],
+  ['bsu','Boise State','9-1','Pac-12','BSU','#0033A0','#D64309',1],
+  ['sc','South Carolina','6-4','SEC','SC','#73000A','#FFFFFF',1],
   ['lsu','LSU','6-4','SEC','LSU','#461D7C','#FDD023',1],
-  ['miz','Missouri','6-4','SEC','MIZ','#F1B82D','#111111',1],
   ['okst','Oklahoma State','6-4','Big 12','OKST','#FF7300','#111111',1],
 ].map(([id,name,rec,conf,ab,c1,c2,out])=>({id,name,rec,conf,ab,c1,c2,out:!!out}));
 const T = Object.fromEntries(TEAMS.map(t=>[t.id,t]));
 const DEFAULT = TEAMS.filter(t=>!t.out).map(t=>t.id);
 const P4 = ['SEC','Big Ten','Big 12','ACC'];
 const G6 = ['Pac-12','Mountain West','American','Sun Belt','MAC','C-USA'];
-const KEY = 'cfp-board-2026-nov17'; // bump each release so boards start from the new committee ranking
+const KEY = 'cfp-board-2026-nov24'; // bump each release so boards start from the new committee ranking
 const NAME_KEY = 'cfp-board-2026-v1-name';
 
 let state = {order:[...DEFAULT], champs:{}, picks:{}};
